@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>echo.log — AI teknoloji haberleri</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #ffffff; --bg2: #f5f5f3; --bg3: #eeecea;
+  --dark: #042C53; --text: #1a1a18; --muted: #6b6b67;
+  --border: rgba(0,0,0,0.09); --border2: rgba(0,0,0,0.16);
+  --blue: #185FA5; --blue-l: #E6F1FB; --blue-m: #378ADD;
+  --purple: #534AB7; --purple-l: #EEEDFE;
+  --teal: #0F6E56; --teal-l: #E1F5EE;
+  --coral: #993C1D; --coral-l: #FAECE7;
+  --green: #3B6D11; --green-l: #EAF3DE;
+  --amber: #854F0B; --amber-l: #FAEEDA;
+  --term: #1e1e1c;
+}
+body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg2); color: var(--text); min-height: 100vh; }
+
+header {
+  background: var(--bg); border-bottom: 1px solid var(--border);
+  height: 56px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 2rem; position: sticky; top: 0; z-index: 100;
+}
+.logo { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; display: flex; align-items: center; gap: 1px; text-decoration: none; color: inherit; }
+.lb { color: var(--blue-m); }
+.lc { display: inline-block; width: 2px; height: 16px; background: var(--blue-m); animation: blink 1.1s step-end infinite; vertical-align: middle; margin-left: 2px; }
+@keyframes blink { 50% { opacity: 0; } }
+
+.ticker { background: var(--dark); padding: 6px 2rem; display: flex; align-items: center; gap: 12px; overflow: hidden; }
+.ticker-label { font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600; color: var(--blue-m); text-transform: uppercase; letter-spacing: 1px; background: rgba(55,138,221,0.15); padding: 2px 8px; border-radius: 3px; white-space: nowrap; }
+.ticker-track { flex: 1; overflow: hidden; }
+.ticker-inner { display: flex; gap: 40px; animation: marquee 30s linear infinite; white-space: nowrap; }
+.t-item { font-family: 'IBM Plex Mono', monospace; font-size: 11px; color: rgba(255,255,255,0.6); display: inline-flex; align-items: center; gap: 7px; }
+.t-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--blue-m); display: inline-block; }
+@keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-50%)} }
+
+.layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; padding: 1.5rem 2rem; max-width: 1280px; margin: 0 auto; }
+
+.feed-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.feed-title { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px; }
+.feed-title::before { content: '//'; color: var(--blue-m); }
+.cat-filters { display: flex; gap: 4px; flex-wrap: wrap; }
+.cat-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 500;
+  padding: 4px 10px; border-radius: 3px; cursor: pointer;
+  border: 1px solid var(--border2); background: var(--bg); color: var(--muted);
+  transition: all 0.12s; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.cat-btn:hover { background: var(--bg3); }
+.cat-btn.active { background: var(--dark); color: #fff; border-color: var(--dark); }
+.btn-refresh {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 600;
+  background: var(--blue); color: #fff; border: none;
+  padding: 7px 16px; border-radius: 4px; cursor: pointer;
+  display: flex; align-items: center; gap: 6px;
+  transition: opacity 0.15s;
+}
+.btn-refresh:hover { opacity: 0.88; }
+.btn-refresh:disabled { opacity: 0.5; cursor: not-allowed; }
+.spin { display: inline-block; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.articles-list { display: flex; flex-direction: column; gap: 1px; }
+.article-card {
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 6px; padding: 16px 18px; margin-bottom: 8px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  animation: fadeIn 0.35s ease both;
+}
+.article-card:hover { border-color: var(--border2); box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+@keyframes fadeIn { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+.card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.card-badges { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.badge {
+  display: inline-block; font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 0.5px; padding: 2px 7px; border-radius: 3px;
+}
+.badge.ai { background: var(--purple-l); color: var(--purple); }
+.badge.security { background: var(--coral-l); color: var(--coral); }
+.badge.hardware { background: var(--teal-l); color: var(--teal); }
+.badge.web { background: var(--blue-l); color: var(--blue); }
+.badge.devops { background: var(--green-l); color: var(--green); }
+.badge.opensource { background: var(--amber-l); color: var(--amber); }
+.badge.genel { background: var(--bg3); color: var(--muted); }
+.source-badge { font-family: 'IBM Plex Mono', monospace; font-size: 9px; color: var(--muted); background: var(--bg3); padding: 2px 7px; border-radius: 3px; }
+.card-time { font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: var(--muted); white-space: nowrap; }
+
+.card-title { font-size: 16px; font-weight: 600; line-height: 1.3; margin-bottom: 8px; letter-spacing: -0.2px; }
+.card-title a { color: inherit; text-decoration: none; }
+.card-title a:hover { color: var(--blue); }
+.card-summary { font-size: 13px; line-height: 1.65; color: var(--muted); margin-bottom: 12px; }
+
+.ai-summary-box {
+  background: var(--bg2); border-left: 3px solid var(--blue-m);
+  border-radius: 0 4px 4px 0; padding: 10px 14px; margin-bottom: 12px;
+  font-size: 13px; line-height: 1.65; color: var(--text);
+}
+.ai-summary-label {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--blue);
+  margin-bottom: 5px; display: flex; align-items: center; gap: 5px;
+}
+.ai-summary-label::before { content: '▸'; }
+.ai-loading { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; font-family: 'IBM Plex Mono', monospace; }
+.ai-dots span { display: inline-block; width: 4px; height: 4px; border-radius: 50%; background: var(--blue-m); margin: 0 1px; animation: dot-bounce 1.2s ease-in-out infinite; }
+.ai-dots span:nth-child(2) { animation-delay: 0.2s; }
+.ai-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dot-bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-5px)} }
+
+.card-footer { display: flex; align-items: center; justify-content: space-between; }
+.btn-source {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
+  color: var(--blue); border: 1px solid #B5D4F4; background: transparent;
+  padding: 5px 12px; border-radius: 4px; cursor: pointer; text-decoration: none;
+  transition: background 0.12s; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-source:hover { background: var(--blue-l); }
+.btn-ai-sum {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
+  color: var(--purple); border: 1px solid #CECBF6; background: transparent;
+  padding: 5px 12px; border-radius: 4px; cursor: pointer;
+  transition: background 0.12s; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-ai-sum:hover { background: var(--purple-l); }
+
+.skeleton-card { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px 18px; margin-bottom: 8px; }
+.skel { background: linear-gradient(90deg, var(--bg2) 25%, var(--bg3) 50%, var(--bg2) 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 3px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+.sidebar-col { display: flex; flex-direction: column; gap: 1rem; }
+.side-box { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+.side-box-title {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 1.2px;
+  padding: 10px 14px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 6px; color: var(--text);
+}
+.side-box-title::before { content: '//'; color: var(--blue-m); }
+
+.source-list { padding: 8px 0; }
+.source-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 14px; font-size: 13px; cursor: pointer;
+  transition: background 0.1s;
+}
+.source-item:hover { background: var(--bg2); }
+.source-name { display: flex; align-items: center; gap: 8px; }
+.source-icon { width: 20px; height: 20px; border-radius: 3px; background: var(--bg3); display: flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; font-family: 'IBM Plex Mono', monospace; }
+.source-toggle { width: 32px; height: 18px; border-radius: 9px; background: var(--bg3); position: relative; cursor: pointer; transition: background 0.2s; border: none; }
+.source-toggle.on { background: var(--blue); }
+.source-toggle::after { content: ''; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+.source-toggle.on::after { transform: translateX(14px); }
+
+.stat-row { display: flex; justify-content: space-between; padding: 8px 14px; font-size: 12px; border-bottom: 1px solid var(--border); }
+.stat-row:last-child { border-bottom: none; }
+.stat-row-label { color: var(--muted); font-size: 12px; }
+.stat-row-val { font-family: 'IBM Plex Mono', monospace; font-size: 12px; font-weight: 600; }
+
+.feed-empty { text-align: center; padding: 4rem 2rem; color: var(--muted); }
+.feed-empty .icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
+.feed-empty p { font-family: 'IBM Plex Mono', monospace; font-size: 13px; line-height: 1.7; }
+
+.toast { position: fixed; bottom: 24px; right: 24px; background: var(--term); color: #9FE1CB; font-family: 'IBM Plex Mono', monospace; font-size: 12px; padding: 10px 18px; border-radius: 5px; transform: translateY(80px); opacity: 0; transition: all 0.25s; z-index: 500; }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar-col { display: none; }
+  header { padding: 0 1rem; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="#" class="logo"><span class="lb">[</span>echo<span class="lb">.</span>log<span class="lb">]</span><span class="lc"></span></a>
+</header>
+
+<div class="ticker">
+  <span class="ticker-label">// feed</span>
+  <div class="ticker-track"><div class="ticker-inner" id="tickerInner">
+    <span class="t-item"><span class="t-dot"></span>RSS feed aktif — haberler otomatik çekiliyor</span>
+    <span class="t-item"><span class="t-dot"></span>Gemini AI ile Türkçe özet üretiliyor</span>
+    <span class="t-item"><span class="t-dot"></span>Kaynak linkler korunuyor — telif hakkı güvende</span>
+    <span class="t-item"><span class="t-dot"></span>RSS feed aktif — haberler otomatik çekiliyor</span>
+    <span class="t-item"><span class="t-dot"></span>Gemini AI ile Türkçe özet üretiliyor</span>
+    <span class="t-item"><span class="t-dot"></span>Kaynak linkler korunuyor — telif hakkı güvende</span>
+  </div></div>
+</div>
+
+<div class="layout">
+  <div>
+    <div class="feed-toolbar">
+      <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div class="feed-title">haberler</div>
+        <div class="cat-filters" id="catFilters">
+          <button class="cat-btn active" data-cat="all">tümü</button>
+          <button class="cat-btn" data-cat="ai">yapay zeka</button>
+          <button class="cat-btn" data-cat="hardware">donanım</button>
+          <button class="cat-btn" data-cat="security">güvenlik</button>
+          <button class="cat-btn" data-cat="web">web</button>
+          <button class="cat-btn" data-cat="devops">devops</button>
+          <button class="cat-btn" data-cat="opensource">açık kaynak</button>
+        </div>
+      </div>
+      <button class="btn-refresh" id="refreshBtn"><span id="refreshIcon">↻</span> haberleri çek</button>
+    </div>
+    <div id="feedContainer"></div>
+  </div>
+
+  <div class="sidebar-col">
+    <div class="side-box">
+      <div class="side-box-title">kaynaklar</div>
+      <div class="source-list" id="sourceList"></div>
+    </div>
+    <div class="side-box">
+      <div class="side-box-title">istatistik</div>
+      <div id="statsBox"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SOURCES = [
+  { id: 'hn',        name: 'Hacker News',    icon: 'HN', color: '#FF6600', rss: 'https://hnrss.org/frontpage',                         active: true  },
+  { id: 'tc',        name: 'TechCrunch',     icon: 'TC', color: '#0A9E3F', rss: 'https://techcrunch.com/feed/',                        active: true  },
+  { id: 'verge',     name: 'The Verge',      icon: 'TV', color: '#E5002B', rss: 'https://www.theverge.com/rss/index.xml',              active: true  },
+  { id: 'ars',       name: 'Ars Technica',   icon: 'AT', color: '#FF6640', rss: 'https://feeds.arstechnica.com/arstechnica/index',      active: false },
+  { id: 'wired',     name: 'Wired',          icon: 'WR', color: '#000000', rss: 'https://www.wired.com/feed/rss',                      active: false },
+  { id: 'mit',       name: 'MIT Tech Review', icon: 'MT', color: '#A31F34', rss: 'https://www.technologyreview.com/feed/',             active: false },
+];
+
+const PROXY = url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+
+let articles = [];
+let currentCat = 'all';
+let sourceStates = {};
+let stats = { fetched: 0, summarized: 0 };
+
+function loadSettings() {
+  try { sourceStates = JSON.parse(localStorage.getItem('el_sources') || '{}'); } catch { sourceStates = {}; }
+  try { articles = JSON.parse(localStorage.getItem('el_articles') || '[]'); } catch { articles = []; }
+}
+
+function saveSettings() {
+  localStorage.setItem('el_sources', JSON.stringify(sourceStates));
+}
+
+function isSourceActive(id) {
+  if (id in sourceStates) return sourceStates[id];
+  return SOURCES.find(s => s.id === id)?.active ?? false;
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+function updateStats() {
+  localStorage.setItem('el_articles', JSON.stringify(articles));
+  const box = document.getElementById('statsBox');
+  const summarized = articles.filter(a => a.aiSummary).length;
+  box.innerHTML = `
+    <div class="stat-row"><span class="stat-row-label">çekilen haber</span><span class="stat-row-val">${articles.length}</span></div>
+    <div class="stat-row"><span class="stat-row-label">AI özet</span><span class="stat-row-val">${summarized}</span></div>
+    <div class="stat-row"><span class="stat-row-label">aktif kaynak</span><span class="stat-row-val">${SOURCES.filter(s => isSourceActive(s.id)).length}</span></div>
+  `;
+}
+
+function renderSourceList() {
+  document.getElementById('sourceList').innerHTML = SOURCES.map(s => `
+    <div class="source-item">
+      <div class="source-name">
+        <div class="source-icon" style="background:${s.color}20; color:${s.color}">${s.icon}</div>
+        <span style="font-size:13px">${s.name}</span>
+      </div>
+      <button class="source-toggle ${isSourceActive(s.id) ? 'on' : ''}" data-src="${s.id}"></button>
+    </div>
+  `).join('');
+
+  document.querySelectorAll('.source-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.src;
+      sourceStates[id] = !isSourceActive(id);
+      btn.className = 'source-toggle ' + (isSourceActive(id) ? 'on' : '');
+      saveSettings();
+      updateStats();
+    });
+  });
+}
+
+function showSkeletons(n = 5) {
+  document.getElementById('feedContainer').innerHTML = Array(n).fill(0).map(() => `
+    <div class="skeleton-card">
+      <div style="display:flex;gap:8px;margin-bottom:12px"><div class="skel" style="width:60px;height:18px"></div><div class="skel" style="width:80px;height:18px"></div></div>
+      <div class="skel" style="width:85%;height:20px;margin-bottom:8px"></div>
+      <div class="skel" style="width:100%;height:14px;margin-bottom:5px"></div>
+    </div>
+  `).join('');
+}
+
+async function fetchRSS(source) {
+  const resp = await fetch(PROXY(source.rss));
+  const data = await resp.json();
+  const parser = new DOMParser();
+  const xml = parser.parseFromString(data.contents, 'text/xml');
+  const items = Array.from(xml.querySelectorAll('item, entry')).slice(0, 6);
+
+  return items.map(item => {
+    const title = item.querySelector('title')?.textContent?.trim() || '';
+    const link = item.querySelector('link')?.textContent?.trim() || item.querySelector('link')?.getAttribute('href') || '#';
+    const desc = item.querySelector('description, summary, content')?.textContent?.trim() || '';
+    const pubDate = item.querySelector('pubDate, published, updated')?.textContent?.trim() || '';
+    const cleanDesc = desc.replace(/<[^>]*>/g, '').replace(/&[a-z]+;/g, ' ').trim().substring(0, 300);
+
+    return {
+      id: btoa(link).substring(0, 16),
+      source: source.name,
+      sourceId: source.id,
+      title,
+      link,
+      desc: cleanDesc,
+      pubDate,
+      category: guessCategory(title + ' ' + cleanDesc),
+      aiSummary: null
+    };
+  }).filter(a => a.title);
+}
+
+function guessCategory(text) {
+  const t = text.toLowerCase();
+  if (/\b(ai|intelligence|ml|gpt|claude|gemini|openai|model|transformer|chatgpt)\b/.test(t)) return 'ai';
+  if (/\b(security|vulnerability|exploit|hack|breach|malware|cve|güvenlik|siber)\b/.test(t)) return 'security';
+  if (/\b(chip|cpu|gpu|hardware|processor|nvidia|intel|amd)\b/.test(t)) return 'hardware';
+  if (/\b(web|browser|javascript|css|html|react|vue|frontend|node)\b/.test(t)) return 'web';
+  if (/\b(devops|kubernetes|docker|cloud|aws|azure|gcp|linux)\b/.test(t)) return 'devops';
+  if (/\b(open.?source|github|linux|rust|python)\b/.test(t)) return 'opensource';
+  return 'genel';
+}
+
+// ARTIK DOĞRUDAN VERCEL SUNUCUSUNA İSTEK ATIYORUZ
+async function generateSummary(article) {
+  const resp = await fetch('/api/summarize', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: article.title,
+      desc: article.desc,
+      maxTokens: 250
+    })
+  });
+
+  if (!resp.ok) throw new Error('Sunucu hatası');
+  const data = await resp.json();
+  return data.summary;
+}
+
+const CAT_TR = { ai: 'yapay zeka', security: 'güvenlik', hardware: 'donanım', web: 'web', devops: 'devops', opensource: 'açık kaynak', genel: 'genel' };
+
+function renderFeed() {
+  const filtered = currentCat === 'all' ? articles : articles.filter(a => a.category === currentCat);
+  const container = document.getElementById('feedContainer');
+
+  if (!filtered.length) {
+    container.innerHTML = `<div class="feed-empty"><p>"Haberleri çek" butonuna tıklayın.</p></div>`;
+    return;
+  }
+
+  container.innerHTML = filtered.map(a => `
+    <div class="article-card" id="card-${a.id}">
+      <div class="card-top">
+        <div class="card-badges">
+          <span class="badge ${a.category}">${CAT_TR[a.category] || a.category}</span>
+          <span class="source-badge">${a.source}</span>
+        </div>
+      </div>
+      <div class="card-title"><a href="${a.link}" target="_blank">${a.title}</a></div>
+      ${a.aiSummary
+        ? `<div class="ai-summary-box"><div class="ai-summary-label">AI Özet</div>${a.aiSummary}</div>`
+        : `<div id="ai-area-${a.id}"></div>`}
+      <div class="card-footer">
+        <a href="${a.link}" target="_blank" class="btn-source">kaynağa git ↗</a>
+        ${!a.aiSummary ? `<button class="btn-ai-sum" id="aibtn-${a.id}" onclick="summarizeOne('${a.id}')">▸ AI özet üret</button>` : ''}
+      </div>
+    </div>
+  `).join('');
+  updateStats();
+}
+
+async function summarizeOne(id) {
+  const article = articles.find(a => a.id === id);
+  if (!article) return;
+
+  const btn = document.getElementById('aibtn-' + id);
+  const area = document.getElementById('ai-area-' + id);
+
+  if (btn) btn.disabled = true;
+  if (area) area.innerHTML = `<div class="ai-summary-box"><div class="ai-loading"><div class="ai-dots"><span></span><span></span><span></span></div> Gemini özetliyor...</div></div>`;
+
+  try {
+    const summary = await generateSummary(article);
+    article.aiSummary = summary;
+    renderFeed();
+  } catch (err) {
+    if (area) area.innerHTML = `<div style="font-size:12px; color:var(--coral); padding:6px 0">⚠ Özet oluşturulamadı.</div>`;
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function fetchAll() {
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  btn.disabled = true; icon.innerHTML = '<span class="spin">↻</span>';
+  showSkeletons(4);
+
+  const activeSources = SOURCES.filter(s => isSourceActive(s.id));
+  const existingIds = new Set(articles.map(a => a.id));
+  let newCount = 0;
+
+  const results = await Promise.allSettled(activeSources.map(s => fetchRSS(s)));
+  results.forEach(r => {
+    if (r.status === 'fulfilled') {
+      r.value.forEach(a => {
+        if (!existingIds.has(a.id)) { articles.unshift(a); newCount++; existingIds.add(a.id); }
+      });
+    }
+  });
+
+  articles = articles.slice(0, 40);
+  btn.disabled = false; icon.textContent = '↻';
+  renderFeed();
+}
+
+document.getElementById('catFilters').addEventListener('click', e => {
+  const btn = e.target.closest('.cat-btn');
+  if (!btn) return;
+  document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentCat = btn.dataset.cat;
+  renderFeed();
+});
+
+document.getElementById('refreshBtn').addEventListener('click', fetchAll);
+
+loadSettings();
+renderSourceList();
+renderFeed();
+</script>
+</body>
+</html>
