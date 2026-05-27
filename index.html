@@ -240,7 +240,7 @@ const SOURCES = [
   { id: 'mit',       name: 'MIT Tech Review', icon: 'MT', color: '#A31F34', rss: 'https://www.technologyreview.com/feed/',             active: false },
 ];
 
-const PROXY = url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+const PROXY = url => `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(url)}`;
 
 let articles = [];
 let currentCat = 'all';
@@ -312,10 +312,9 @@ function showSkeletons(n = 5) {
 
 async function fetchRSS(source) {
   const resp = await fetch(PROXY(source.rss));
-  const data = await resp.json();
+  const xmlText = await resp.text();
   const parser = new DOMParser();
-  const xml = parser.parseFromString(data.contents, 'text/xml');
-  const items = Array.from(xml.querySelectorAll('item, entry')).slice(0, 6);
+  const xml = parser.parseFromString(xmlText, 'text/xml');
 
   return items.map(item => {
     const title = item.querySelector('title')?.textContent?.trim() || '';
